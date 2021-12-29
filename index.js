@@ -18,8 +18,7 @@ app.post('/getmovie', (req, res) => {
 	const movieToSearch =
 		req.body.queryResult && req.body.queryResult.parameters && req.body.queryResult.parameters.movie
 			? req.body.queryResult.parameters.movie
-			: '';
-    console.log(req.body);        
+			: '';      
 
 	const reqUrl = encodeURI(
         `http://api.themoviedb.org/3/search/movie?api_key=${process.env.API_KEY}&query=${movieToSearch}`
@@ -28,7 +27,6 @@ app.post('/getmovie', (req, res) => {
 	http.get(
 		reqUrl,
 		responseFromAPI => {
-            console.log(responseFromAPI.status);
 			let completeResponse = ''
 			responseFromAPI.on('data', chunk => {
 				completeResponse += chunk
