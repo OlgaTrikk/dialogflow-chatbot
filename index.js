@@ -31,70 +31,76 @@ app.post('/getmovie', (req, res) => {
 				completeResponse += chunk
 			})
 			responseFromAPI.on('end', () => {
-				const movie = JSON.parse(completeResponse)
+				const movie = JSON.parse(completeResponse);
+                if (!movie || !movie.Title) {
+                    return res.json({
+                        fulfillmentText: 'Sorry, we could not find the movie you are asking for.',
+                        source: 'getmovie'
+                    });
+                }
 
-				let dataToSend = movieToSearch
+				let dataToSend = movieToSearch;
 				dataToSend = `${movie.Title} was released in the year ${movie.Year}. It is directed by ${
 					movie.Director
 				} and stars ${movie.Actors}.\n Here some glimpse of the plot: ${movie.Plot}.
-                }`
+                }`;
 
 				return res.json({
 					fulfillmentText: dataToSend,
 					source: 'getmovie'
-				})
+				});
 			})
 		},
 		error => {
 			return res.json({
 				fulfillmentText: 'Could not get results at this time',
 				source: 'getmovie'
-			})
+			});
 		}
 	)
 })
 
 
-app.post('/themoviedb_getmovie', (req, res) => {
-	const movieToSearch =
-		req.body.queryResult && req.body.queryResult.parameters && req.body.queryResult.parameters.movie
-			? req.body.queryResult.parameters.movie
-			: '';      
+// app.post('/themoviedb_getmovie', (req, res) => {
+// 	const movieToSearch =
+// 		req.body.queryResult && req.body.queryResult.parameters && req.body.queryResult.parameters.movie
+// 			? req.body.queryResult.parameters.movie
+// 			: '';      
 
-	const reqUrl = encodeURI(
-        `http://api.themoviedb.org/3/search/movie?api_key=${process.env.THEMOVIEDB_API_KEY}&query=${movieToSearch}`
-	);
-    console.log(reqUrl);
-	http.get(
-		reqUrl,
-		responseFromAPI => {
-			let completeResponse = ''
-			responseFromAPI.on('data', chunk => {
-				completeResponse += chunk
-			})
-			responseFromAPI.on('end', () => {
-				const response = JSON.parse(completeResponse);
-                const movie = response.results[0]
+// 	const reqUrl = encodeURI(
+//         `http://api.themoviedb.org/3/search/movie?api_key=${process.env.THEMOVIEDB_API_KEY}&query=${movieToSearch}`
+// 	);
+//     console.log(reqUrl);
+// 	http.get(
+// 		reqUrl,
+// 		responseFromAPI => {
+// 			let completeResponse = ''
+// 			responseFromAPI.on('data', chunk => {
+// 				completeResponse += chunk
+// 			})
+// 			responseFromAPI.on('end', () => {
+// 				const response = JSON.parse(completeResponse);
+//                 const movie = response.results[0]
 
-				let dataToSend = movieToSearch;
-				dataToSend = `${movie.title} was released in the year ${movie.release_date}.
-                Here some glimpse of the plot: ${movie.overview}.
-                }`
+// 				let dataToSend = movieToSearch;
+// 				dataToSend = `${movie.title} was released in the year ${movie.release_date}.
+//                 Here some glimpse of the plot: ${movie.overview}.
+//                 }`
 
-				return res.json({
-					fulfillmentText: dataToSend,
-					source: 'getmovie'
-				})
-			})
-		},
-		error => {
-			return res.json({
-				fulfillmentText: 'Could not get results at this time',
-				source: 'getmovie'
-			})
-		}
-	)
-})
+// 				return res.json({
+// 					fulfillmentText: dataToSend,
+// 					source: 'getmovie'
+// 				})
+// 			})
+// 		},
+// 		error => {
+// 			return res.json({
+// 				fulfillmentText: 'Could not get results at this time',
+// 				source: 'getmovie'
+// 			})
+// 		}
+// 	)
+// })
 
 app.listen(port, () => {
 	console.log(`🌏 Server is running at http://localhost:${port}`)
