@@ -1,6 +1,7 @@
 const express = require('express');
 // will use this later to send requests
 const http = require('http');
+const https = require('https');
 // import env variables
 require('dotenv').config();
 
@@ -42,8 +43,7 @@ app.post('/getmovie', (req, res) => {
 				let dataToSend = movieToSearch;
 				dataToSend = `${movie.Title} was released in the year ${movie.Year}. It is directed by ${
 					movie.Director
-				} and stars ${movie.Actors}.\n Here some glimpse of the plot: ${movie.Plot}.
-                }`;
+				} and stars ${movie.Actors}.\n Here some glimpse of the plot: ${movie.Plot}.`;
 
 				return res.json({
 					fulfillmentText: dataToSend,
@@ -55,6 +55,48 @@ app.post('/getmovie', (req, res) => {
 			return res.json({
 				fulfillmentText: 'Could not get results at this time',
 				source: 'getmovie'
+			});
+		}
+	)
+});
+
+app.post('/getholiday', (req, res) => {
+	const holidayToSearch =
+		req.body.queryResult && req.body.queryResult.parameters && req.body.queryResult.parameters.holiday
+			? req.body.queryResult.parameters.holiday
+			: '';
+	console.log(req.body);
+
+	const reqUrl = encodeURI(`https://xn--riigiphad-v9a.ee/?output=json`);
+	https.get(
+		reqUrl,
+		responseFromAPI => {
+			let completeResponse = ''
+			responseFromAPI.on('data', chunk => {
+				completeResponse += chunk
+			})
+			responseFromAPI.on('end', () => {
+				const holidays = JSON.parse(completeResponse);
+				var holiday = holidays.find(x => x.title?.toLowerCase() === holidayToSearch?.toLowerCase());
+                if (!holiday || !holiday.title) {
+                    return res.json({
+                        fulfillmentText: 'Sorry, we could not find the holiday you are asking for.',
+                        source: 'getholiday'
+                    });
+                }
+
+				dataToSend = `${holiday.title} is on ${holiday.date}.`;
+
+				return res.json({
+					fulfillmentText: dataToSend,
+					source: 'getholiday'
+				});
+			})
+		},
+		error => {
+			return res.json({
+				fulfillmentText: 'Could not get results at this time',
+				source: 'getholiday'
 			});
 		}
 	)
